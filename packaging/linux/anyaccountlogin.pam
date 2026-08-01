@@ -1,0 +1,7 @@
+# PAM configuration for AnyAccountLogin
+# Add this to /etc/pam.d/system-auth or /etc/pam.d/common-auth
+
+auth    required    pam_anyaccountlogin.so flash_drive=/media/usb
+account required    pam_nologin.so
+password required   pam_anyaccountlogin.so
+session required    pam_limits.so

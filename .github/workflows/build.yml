@@ -1,0 +1,272 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+env:
+  GO_VERSION: '1.21'
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }} (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          # macOS
+          - os: darwin
+            arch: amd64
+            runner: macos-latest
+          - os: darwin
+            arch: arm64
+            runner: macos-latest
+          # Linux
+          - os: linux
+            arch: amd64
+            runner: ubuntu-latest
+          - os: linux
+            arch: arm64
+            runner: ubuntu-latest
+          # Windows
+          - os: windows
+            arch: amd64
+            runner: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Set up cross-compilation dependencies
+        if: matrix.os == 'linux' && matrix.arch == 'arm64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+
+      - name: Set version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          else
+            VERSION="0.0.0-dev"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+      - name: Build Go binaries
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: '0'
+        run: |
+          mkdir -p build/${{ matrix.os }}-${{ matrix.arch }}
+          
+          # Build CLI
+          go build -ldflags="-s -w -X main.version=${{ env.VERSION }}" \
+            -o build/${{ matrix.os }}-${{ matrix.arch }}/anyaccountlogin${{ matrix.os == 'windows' && '.exe' || '' }} \
+            ./cmd/anyaccountlogin
+          
+          # Build daemon
+          go build -ldflags="-s -w -X main.version=${{ env.VERSION }}" \
+            -o build/${{ matrix.os }}-${{ matrix.arch }}/anyaccountlogin-daemon${{ matrix.os == 'windows' && '.exe' || '' }} \
+            ./cmd/anyaccountlogin-daemon
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: anyaccountlogin-${{ matrix.os }}-${{ matrix.arch }}
+          path: build/${{ matrix.os }}-${{ matrix.arch }}/
+          retention-days: 7
+
+  package-macos:
+    name: Package macOS Installer
+    needs: build
+    runs-on: macos-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set version
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+      - name: Download macOS binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: anyaccountlogin-darwin-amd64
+          path: build/macos-darwin-amd64
+
+      - name: Download macOS ARM64 binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: anyaccountlogin-darwin-arm64
+          path: build/macos-darwin-arm64
+
+      - name: Create universal binary
+        run: |
+          mkdir -p build/macos-universal
+          lipo -create -output build/macos-universal/anyaccountlogin \
+            build/macos-darwin-amd64/anyaccountlogin \
+            build/macos-darwin-arm64/anyaccountlogin
+          lipo -create -output build/macos-universal/anyaccountlogin-daemon \
+            build/macos-darwin-amd64/anyaccountlogin-daemon \
+            build/macos-darwin-arm64/anyaccountlogin-daemon
+          chmod +x build/macos-universal/anyaccountlogin
+          chmod +x build/macos-universal/anyaccountlogin-daemon
+
+      - name: Build .pkg installer
+        run: |
+          chmod +x packaging/macos/build-pkg.sh
+          VERSION=${{ env.VERSION }} packaging/macos/build-pkg.sh
+
+      - name: Upload .pkg installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: anyaccountlogin-macos-pkg
+          path: build/macos/*.pkg
+          retention-days: 7
+
+  package-linux:
+    name: Package Linux Installers
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set version
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+      - name: Install packaging dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev rpm fakeroot
+
+      - name: Download Linux AMD64 binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: anyaccountlogin-linux-amd64
+          path: build/linux-amd64
+
+      - name: Copy binaries to packaging directory
+        run: |
+          cp build/linux-amd64/anyaccountlogin packaging/linux/anyaccountlogin
+          cp build/linux-amd64/anyaccountlogin-daemon packaging/linux/anyaccountlogin-daemon
+          chmod +x packaging/linux/anyaccountlogin
+          chmod +x packaging/linux/anyaccountlogin-daemon
+
+      - name: Build .deb package
+        run: |
+          chmod +x packaging/linux/build-deb.sh
+          VERSION=${{ env.VERSION }} packaging/linux/build-deb.sh
+
+      - name: Build .rpm package
+        run: |
+          chmod +x packaging/linux/build-rpm.sh
+          VERSION=${{ env.VERSION }} packaging/linux/build-rpm.sh
+
+      - name: Upload Linux packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: anyaccountlogin-linux-packages
+          path: build/linux/*.{deb,rpm}
+          retention-days: 7
+
+  package-windows:
+    name: Package Windows Installer
+    needs: build
+    runs-on: windows-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set version
+        id: version
+        run: |
+          $VERSION = "${{ github.ref }}" -replace "refs/tags/v", ""
+          echo "version=$VERSION" >> $env:GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $env:GITHUB_ENV
+
+      - name: Download Windows binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: anyaccountlogin-windows-amd64
+          path: build/windows-amd64
+
+      - name: Install WiX Toolset
+        run: |
+          choco install wixtoolset
+
+      - name: Build .msi installer
+        run: |
+          chmod +x packaging/windows/build-msi.sh
+          $env:VERSION = "${{ env.VERSION }}"
+          packaging/windows/build-msi.sh
+
+      - name: Upload .msi installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: anyaccountlogin-windows-msi
+          path: build/windows/*.msi
+          retention-days: 7
+
+  release:
+    name: Create Release
+    needs: [package-macos, package-linux, package-windows]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set version
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/**/*.pkg
+            artifacts/**/*.deb
+            artifacts/**/*.rpm
+            artifacts/**/*.msi
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

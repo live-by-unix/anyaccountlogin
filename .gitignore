@@ -1,0 +1,149 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+anyaccountlogin
+anyaccountlogin-daemon
+anyaccountlogin-service
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.html
+coverage.txt
+
+# Go workspace file
+go.work
+
+# Dependency directories
+vendor/
+
+# Build directories
+build/
+dist/
+bin/
+obj/
+
+# Platform-specific build artifacts
+*.a
+*.lib
+*.o
+*.obj
+
+# Key directories (contains sensitive data)
+anyaccountloginkeys/
+*.pem
+*.pub.pem
+PasswordAuthCode.txt
+
+# Installer outputs
+*.pkg
+*.deb
+*.rpm
+*.msi
+*.wixobj
+*.wixpdb
+
+# Packaging build directories
+packaging/macos/build/
+packaging/linux/build/
+packaging/windows/build/
+
+# Log files
+*.log
+logs/
+*.error.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
+*~
+
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.iml
+.spyproject
+.settings/
+
+# Debug files
+debug
+__debug_bin
+*.debug
+
+# Test coverage
+cover.*
+*.coverprofile
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Config files with secrets
+config.json
+*.secret
+secrets/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# WiX Toolset
+*.wxs~
+*.wixobj~
+
+# PAM module build
+packaging/linux/*.o
+packaging/linux/*.so
+
+# macOS bundle
+*.app
+*.bundle
+
+# Windows DLLs
+*.dll.manifest
+*.exp
+
+# Security sensitive files
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+
+# Documentation build
+docs/_build/
+docs/.doctrees/
+
+# Package manager locks
+package-lock.json
+yarn.lock

@@ -1,0 +1,22 @@
+# Makefile for building the PAM module
+
+CC = gcc
+CFLAGS = -fPIC -Wall -O2
+LDFLAGS = -shared -lpam
+PAM_MODULE = pam_anyaccountlogin.so
+INSTALL_DIR = /lib/security
+CONFIG_DIR = /etc/pam.d
+
+all: $(PAM_MODULE)
+
+$(PAM_MODULE): pam_anyaccountlogin.c
+	$(CC) $(CFLAGS) -o $(PAM_MODULE) pam_anyaccountlogin.c $(LDFLAGS)
+
+install: $(PAM_MODULE)
+	install -D -m 644 $(PAM_MODULE) $(INSTALL_DIR)/$(PAM_MODULE)
+	install -D -m 644 anyaccountlogin.pam $(CONFIG_DIR)/anyaccountlogin
+
+clean:
+	rm -f $(PAM_MODULE)
+
+.PHONY: all install clean

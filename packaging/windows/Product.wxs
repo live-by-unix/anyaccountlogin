@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" 
+           Name="AnyAccountLogin" 
+           Language="1033" 
+           Version="1.0.0.0" 
+           Manufacturer="AnyAccountLogin" 
+           UpgradeCode="YOUR-GUID-HERE">
+    
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+    
+    <MajorUpgrade DowngradeErrorMessage="A newer version of AnyAccountLogin is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+    
+    <Feature Id="ProductFeature" Title="AnyAccountLogin" Level="1">
+      <ComponentGroupRef Id="Binaries" />
+      <ComponentGroupRef Id="CredentialProvider" />
+      <ComponentGroupRef Id="Service" />
+      <ComponentGroupRef Id="Config" />
+    </Feature>
+    
+    <DirectoryRef Id="INSTALLFOLDER">
+      <Component Id="RegistryEntries" Guid="YOUR-GUID-HERE">
+        <RegistryKey Root="HKLM" Key="SOFTWARE\AnyAccountLogin">
+          <RegistryValue Name="Version" Type="string" Value="1.0.0" />
+          <RegistryValue Name="InstallPath" Type="string" Value="[INSTALLFOLDER]" />
+        </RegistryKey>
+      </Component>
+    </DirectoryRef>
+    
+    <InstallExecuteSequence>
+      <Custom Action="InstallService" After="InstallFiles">NOT Installed</Custom>
+      <Custom Action="UninstallService" Before="RemoveFiles">Installed</Custom>
+    </InstallExecuteSequence>
+    
+    <CustomAction Id="InstallService" 
+                  Directory="INSTALLFOLDER" 
+                  ExeCommand="anyaccountlogin-service.exe install" 
+                  Return="check" />
+    
+    <CustomAction Id="UninstallService" 
+                  Directory="INSTALLFOLDER" 
+                  ExeCommand="anyaccountlogin-service.exe uninstall" 
+                  Return="check" />
+  </Product>
+  
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="AnyAccountLogin" />
+      </Directory>
+      <Directory Id="System64Folder" />
+      <Directory Id="CommonAppDataFolder">
+        <Directory Id="APPDATAFOLDER" Name="AnyAccountLogin" />
+      </Directory>
+    </Directory>
+  </Fragment>
+  
+  <Fragment>
+    <ComponentGroup Id="Binaries" Directory="INSTALLFOLDER">
+      <Component Id="anyaccountlogin" Guid="YOUR-GUID-HERE">
+        <File Id="anyaccountlogin.exe" Source="anyaccountlogin.exe" />
+      </Component>
+      <Component Id="anyaccountlogin-daemon" Guid="YOUR-GUID-HERE">
+        <File Id="anyaccountlogin-daemon.exe" Source="anyaccountlogin-daemon.exe" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+  
+  <Fragment>
+    <ComponentGroup Id="CredentialProvider" Directory="System64Folder">
+      <Component Id="CredentialProviderDLL" Guid="YOUR-GUID-HERE">
+        <File Id="AnyAccountLoginCredentialProvider.dll" 
+              Source="AnyAccountLoginCredentialProvider.dll" 
+              KeyPath="yes" />
+        <RegistryValue Root="HKLM" 
+                       Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\Credential Providers\{YOUR-CLSID}" 
+                       Type="string" 
+                       Value="[System64Folder]AnyAccountLoginCredentialProvider.dll" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+  
+  <Fragment>
+    <ComponentGroup Id="Service" Directory="INSTALLFOLDER">
+      <Component Id="WindowsService" Guid="YOUR-GUID-HERE">
+        <File Id="anyaccountlogin-service.exe" Source="anyaccountlogin-service.exe" />
+        <ServiceInstall Id="AnyAccountLoginService" 
+                        Type="ownProcess" 
+                        Vital="yes" 
+                        Name="AnyAccountLoginService" 
+                        DisplayName="AnyAccountLogin Authentication Service" 
+                        Description="Provides AnyAccountLogin authentication services" 
+                        Start="auto" 
+                        Account="LocalSystem" 
+                        ErrorControl="normal" />
+        <ServiceControl Id="StartService" 
+                        Start="install" 
+                        Stop="both" 
+                        Remove="uninstall" 
+                        Name="AnyAccountLoginService" 
+                        Wait="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+  
+  <Fragment>
+    <ComponentGroup Id="Config" Directory="APPDATAFOLDER">
+      <Component Id="ConfigFiles" Guid="YOUR-GUID-HERE">
+        <CreateFolder Directory="APPDATAFOLDER" />
+        <File Id="config.json" Source="config.json" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

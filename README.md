@@ -17,10 +17,6 @@ A cross-platform authentication system that provides secure login using flash dr
 
 Download and install the `.pkg` installer from the [latest release](https://github.com/live-by-unix/anyaccountlogin/releases).
 
-```bash
-# Using Homebrew (if available)
-brew install anyaccountlogin
-```
 
 ### Linux
 

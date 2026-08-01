@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" 
-           Name="AnyAccountLogin" 
-           Language="1033" 
-           Version="1.0.0.0" 
-           Manufacturer="AnyAccountLogin" 
-           UpgradeCode="YOUR-GUID-HERE">
-    
+  <Product Id="*"
+           Name="AnyAccountLogin"
+           Language="1033"
+           Version="1.0.0.0"
+           Manufacturer="live-by-unix"
+           UpgradeCode="1A2B3C4D-5E6F-7890-ABCD-EF1234567890">
+
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
-    
+
     <MajorUpgrade DowngradeErrorMessage="A newer version of AnyAccountLogin is already installed." />
     <MediaTemplate EmbedCab="yes" />
-    
+
     <Feature Id="ProductFeature" Title="AnyAccountLogin" Level="1">
       <ComponentGroupRef Id="Binaries" />
       <ComponentGroupRef Id="CredentialProvider" />
@@ -20,7 +20,7 @@
     </Feature>
     
     <DirectoryRef Id="INSTALLFOLDER">
-      <Component Id="RegistryEntries" Guid="YOUR-GUID-HERE">
+      <Component Id="RegistryEntries" Guid="2B3C4D5E-6F70-8901-BCDE-F12345678901">
         <RegistryKey Root="HKLM" Key="SOFTWARE\AnyAccountLogin">
           <RegistryValue Name="Version" Type="string" Value="1.0.0" />
           <RegistryValue Name="InstallPath" Type="string" Value="[INSTALLFOLDER]" />
@@ -58,10 +58,10 @@
   
   <Fragment>
     <ComponentGroup Id="Binaries" Directory="INSTALLFOLDER">
-      <Component Id="anyaccountlogin" Guid="YOUR-GUID-HERE">
+      <Component Id="anyaccountlogin" Guid="D4E5F6A7-B8C9-0123-DEF0-123456789012">
         <File Id="anyaccountlogin.exe" Source="anyaccountlogin.exe" />
       </Component>
-      <Component Id="anyaccountlogin-daemon" Guid="YOUR-GUID-HERE">
+      <Component Id="anyaccountlogin-daemon" Guid="E5F6A7B8-C9D0-1234-EF01-234567890123">
         <File Id="anyaccountlogin-daemon.exe" Source="anyaccountlogin-daemon.exe" />
       </Component>
     </ComponentGroup>
@@ -69,13 +69,13 @@
   
   <Fragment>
     <ComponentGroup Id="CredentialProvider" Directory="System64Folder">
-      <Component Id="CredentialProviderDLL" Guid="YOUR-GUID-HERE">
-        <File Id="AnyAccountLoginCredentialProvider.dll" 
-              Source="AnyAccountLoginCredentialProvider.dll" 
+      <Component Id="CredentialProviderDLL" Guid="B2C3D4E5-F6A7-8901-BCDE-F12345678901">
+        <File Id="AnyAccountLoginCredentialProvider.dll"
+              Source="AnyAccountLoginCredentialProvider.dll"
               KeyPath="yes" />
-        <RegistryValue Root="HKLM" 
-                       Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\Credential Providers\{YOUR-CLSID}" 
-                       Type="string" 
+        <RegistryValue Root="HKLM"
+                       Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\Credential Providers\{C3D4E5F6-A7B8-9012-CDEF-123456789012}"
+                       Type="string"
                        Value="[System64Folder]AnyAccountLoginCredentialProvider.dll" />
       </Component>
     </ComponentGroup>
@@ -83,22 +83,22 @@
   
   <Fragment>
     <ComponentGroup Id="Service" Directory="INSTALLFOLDER">
-      <Component Id="WindowsService" Guid="YOUR-GUID-HERE">
+      <Component Id="WindowsService" Guid="F6A7B8C9-D0E1-2345-F012-345678901234">
         <File Id="anyaccountlogin-service.exe" Source="anyaccountlogin-service.exe" />
-        <ServiceInstall Id="AnyAccountLoginService" 
-                        Type="ownProcess" 
-                        Vital="yes" 
-                        Name="AnyAccountLoginService" 
-                        DisplayName="AnyAccountLogin Authentication Service" 
-                        Description="Provides AnyAccountLogin authentication services" 
-                        Start="auto" 
-                        Account="LocalSystem" 
+        <ServiceInstall Id="AnyAccountLoginService"
+                        Type="ownProcess"
+                        Vital="yes"
+                        Name="AnyAccountLoginService"
+                        DisplayName="AnyAccountLogin Authentication Service"
+                        Description="Provides AnyAccountLogin authentication services"
+                        Start="auto"
+                        Account="LocalSystem"
                         ErrorControl="normal" />
-        <ServiceControl Id="StartService" 
-                        Start="install" 
-                        Stop="both" 
-                        Remove="uninstall" 
-                        Name="AnyAccountLoginService" 
+        <ServiceControl Id="StartService"
+                        Start="install"
+                        Stop="both"
+                        Remove="uninstall"
+                        Name="AnyAccountLoginService"
                         Wait="yes" />
       </Component>
     </ComponentGroup>
@@ -106,7 +106,7 @@
   
   <Fragment>
     <ComponentGroup Id="Config" Directory="APPDATAFOLDER">
-      <Component Id="ConfigFiles" Guid="YOUR-GUID-HERE">
+      <Component Id="ConfigFiles" Guid="A7B8C9D0-E1F2-3456-0123-456789012345">
         <CreateFolder Directory="APPDATAFOLDER" />
         <File Id="config.json" Source="config.json" />
       </Component>

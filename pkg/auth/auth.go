@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -169,21 +170,49 @@ func (am *AuthManager) ValidateDevice(currentID string) error {
 
 // generateAuthCode generates a random auth code
 func generateAuthCode() (string, error) {
-	// This would use crypto/rand in a real implementation
-	// For now, return a placeholder
-	return "generated-auth-code", nil
+	// Use crypto/rand for secure random generation
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("failed to generate auth code: %w", err)
+	}
+	return fmt.Sprintf("%x", b), nil
 }
 
 // generateKeyPair generates an RSA key pair
 func generateKeyPair(basePath string) error {
-	// This would use the crypto package in a real implementation
-	// For now, create a placeholder file
-	privateKeyPath := basePath
-	publicKeyPath := basePath + ".pub"
-
-	// Create placeholder files
-	if err := os.WriteFile(privateKeyPath, []byte("placeholder-private-key"), 0600); err != nil {
-		return err
+	// Use the crypto package for real key generation
+	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	if err != nil {
+		return fmt.Errorf("failed to generate RSA key: %w", err)
 	}
-	return os.WriteFile(publicKeyPath, []byte("placeholder-public-key"), 0644)
+
+	// Save private key
+	privateKeyBytes := x509.MarshalPKCS1PrivateKey(privateKey)
+	privateKeyPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: privateKeyBytes,
+	})
+
+	privateKeyPath := basePath
+	if err := os.WriteFile(privateKeyPath, privateKeyPEM, 0600); err != nil {
+		return fmt.Errorf("failed to write private key: %w", err)
+	}
+
+	// Save public key
+	publicKeyBytes, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
+	if err != nil {
+		return fmt.Errorf("failed to marshal public key: %w", err)
+	}
+
+	publicKeyPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: publicKeyBytes,
+	})
+
+	publicKeyPath := basePath + ".pub"
+	if err := os.WriteFile(publicKeyPath, publicKeyPEM, 0644); err != nil {
+		return fmt.Errorf("failed to write public key: %w", err)
+	}
+
+	return nil
 }

@@ -26,8 +26,8 @@ mkdir -p "${DEB_DIR}/var/log/anyaccountlogin"
 
 # Build Go binaries
 echo "Building Go binaries..."
-GOOS=linux GOARCH=amd64 go build -o "${DEB_DIR}/usr/local/bin/anyaccountlogin" ./cmd/anyaccountlogin
-GOOS=linux GOARCH=amd64 go build -o "${DEB_DIR}/usr/local/bin/anyaccountlogin-daemon" ./cmd/anyaccountlogin-daemon
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o "${DEB_DIR}/usr/local/bin/anyaccountlogin" ./cmd/anyaccountlogin
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o "${DEB_DIR}/usr/local/bin/anyaccountlogin-daemon" ./cmd/anyaccountlogin-daemon
 
 # Set permissions
 chmod +x "${DEB_DIR}/usr/local/bin/anyaccountlogin"

@@ -17,8 +17,8 @@ mkdir -p "${WIX_DIR}" "${BINARY_DIR}"
 
 # Build Go binaries
 echo "Building Go binaries..."
-GOOS=windows GOARCH=amd64 go build -o "${BINARY_DIR}/anyaccountlogin.exe" ./cmd/anyaccountlogin
-GOOS=windows GOARCH=amd64 go build -o "${BINARY_DIR}/anyaccountlogin-daemon.exe" ./cmd/anyaccountlogin-daemon
+GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o "${BINARY_DIR}/anyaccountlogin.exe" ./cmd/anyaccountlogin
+GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o "${BINARY_DIR}/anyaccountlogin-daemon.exe" ./cmd/anyaccountlogin-daemon
 
 # Build Windows service (requires Visual Studio or MinGW)
 echo "Building Windows service..."

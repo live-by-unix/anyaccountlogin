@@ -18,8 +18,8 @@ mkdir -p "${ROOT_DIR}" "${SCRIPTS_DIR}"
 
 # Build Go binaries
 echo "Building Go binaries..."
-GOOS=darwin GOARCH=amd64 go build -o "${ROOT_DIR}/usr/local/bin/anyaccountlogin" ./cmd/anyaccountlogin
-GOOS=darwin GOARCH=amd64 go build -o "${ROOT_DIR}/usr/local/bin/anyaccountlogin-daemon" ./cmd/anyaccountlogin-daemon
+GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o "${ROOT_DIR}/usr/local/bin/anyaccountlogin" ./cmd/anyaccountlogin
+GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o "${ROOT_DIR}/usr/local/bin/anyaccountlogin-daemon" ./cmd/anyaccountlogin-daemon
 
 # Set permissions
 chmod +x "${ROOT_DIR}/usr/local/bin/anyaccountlogin"

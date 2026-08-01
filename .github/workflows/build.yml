@@ -69,17 +69,22 @@ jobs:
         env:
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
-          CGO_ENABLED: '0'
         run: |
           mkdir -p build/${{ matrix.os }}-${{ matrix.arch }}
           
+          # Set CGO based on platform
+          CGO_ENABLED=0
+          if [ "${{ matrix.os }}" == "darwin" ] || [ "${{ matrix.os }}" == "windows" ]; then
+            CGO_ENABLED=1
+          fi
+          
           # Build CLI
-          go build -ldflags="-s -w -X main.version=${{ env.VERSION }}" \
+          go build -ldflags="-s -w" \
             -o build/${{ matrix.os }}-${{ matrix.arch }}/anyaccountlogin${{ matrix.os == 'windows' && '.exe' || '' }} \
             ./cmd/anyaccountlogin
           
           # Build daemon
-          go build -ldflags="-s -w -X main.version=${{ env.VERSION }}" \
+          go build -ldflags="-s -w" \
             -o build/${{ matrix.os }}-${{ matrix.arch }}/anyaccountlogin-daemon${{ matrix.os == 'windows' && '.exe' || '' }} \
             ./cmd/anyaccountlogin-daemon
 

@@ -1,4 +1,8 @@
-# Binaries for programs and plugins
+# Binaries for programs and plugins (repository root only)
+/anyaccountlogin
+/anyaccountlogin-daemon
+/anyaccountlogin-service
+
 *.exe
 *.exe~
 *.dll
@@ -6,9 +10,6 @@
 *.dylib
 *.test
 *.out
-anyaccountlogin
-anyaccountlogin-daemon
-anyaccountlogin-service
 
 # Test binary, built with `go test -c`
 *.test
@@ -133,7 +134,7 @@ packaging/linux/*.so
 *.dll.manifest
 *.exp
 
-# Security sensitive files
+# Security-sensitive files
 *.key
 *.crt
 *.csr
